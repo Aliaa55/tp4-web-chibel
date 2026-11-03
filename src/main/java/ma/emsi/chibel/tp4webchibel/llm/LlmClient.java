@@ -10,6 +10,8 @@ import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.query.router.LanguageModelQueryRouter;
 import dev.langchain4j.rag.query.router.QueryRouter;
+import dev.langchain4j.rag.query.transformer.CompressingQueryTransformer;
+import dev.langchain4j.rag.query.transformer.QueryTransformer;
 import dev.langchain4j.service.AiServices;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -61,7 +63,11 @@ public class LlmClient implements Serializable {
         descriptions.put(magasinEmbeddings.getContentRetrieverCouscous(),
                 "Article sur le couscous : histoire, préparation et variantes de ce plat de la cuisine du Maghreb");
         QueryRouter queryRouter = new LanguageModelQueryRouter(model, descriptions);
+        // Transformation de la question : le LM réécrit la dernière question en tenant compte
+        // de la conversation, pour que le routage et la recherche des segments pertinents soient meilleurs
+        QueryTransformer queryTransformer = new CompressingQueryTransformer(model);
         RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                .queryTransformer(queryTransformer)
                 .queryRouter(queryRouter)
                 .build();
 
